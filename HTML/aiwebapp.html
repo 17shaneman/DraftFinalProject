@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #111;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+        }
+        canvas {
+            background-color: #000;
+            border: 2px solid #00FF00;
+        }
+        #score {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #playAgainBtn {
+            display: none;
+            padding: 10px 20px;
+            font-size: 20px;
+            margin-top: 10px;
+            background-color: #00FF00;
+            border: none;
+            color: #000;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #playAgainBtn:hover {
+            background-color: #00CC00;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Score: 0</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <button id="playAgainBtn" onclick="startGame()">Play Again</button>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const scoreDisplay = document.getElementById('score');
+
+        const box = 20;
+        let snake, direction, food, score, game;
+
+        function randomPosition() {
+            return Math.floor(Math.random() * 20) * box;
+        }
+
+        function drawSnake() {
+            snake.forEach(segment => {
+                ctx.fillStyle = 'lime';
+                ctx.fillRect(segment.x, segment.y, box, box);
+                ctx.strokeStyle = 'darkgreen';
+                ctx.strokeRect(segment.x, segment.y, box, box);
+            });
+        }
+
+        function drawFood() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x, food.y, box, box);
+        }
+
+        function moveSnake() {
+            let head = { ...snake[0] };
+
+            if (direction === 'UP') head.y -= box;
+            if (direction === 'DOWN') head.y += box;
+            if (direction === 'LEFT') head.x -= box;
+            if (direction === 'RIGHT') head.x += box;
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                scoreDisplay.innerText = `Score: ${score}`;
+                food = { x: randomPosition(), y: randomPosition() };
+            } else {
+                snake.pop();
+            }
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+            if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height ||
+                snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)) {
+                clearInterval(game);
+                playAgainBtn.style.display = 'block';
+                alert(`Game Over! Final Score: ${score}`);
+            }
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowUp' && direction !== 'DOWN') direction = 'UP';
+            if (event.key === 'ArrowDown' && direction !== 'UP') direction = 'DOWN';
+            if (event.key === 'ArrowLeft' && direction !== 'RIGHT') direction = 'LEFT';
+            if (event.key === 'ArrowRight' && direction !== 'LEFT') direction = 'RIGHT';
+        });
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSnake();
+            drawFood();
+            moveSnake();
+            checkCollision();
+        }
+
+        function startGame() {
+            snake = [{ x: 200, y: 200 }];
+            direction = 'RIGHT';
+            food = { x: randomPosition(), y: randomPosition() };
+            score = 0;
+            scoreDisplay.innerText = 'Score: 0';
+            playAgainBtn.style.display = 'none';
+            game = setInterval(gameLoop, 100);
+        }
+
+        // Start the game initially
+        startGame();
+    </script>
+</body>
+</html>
